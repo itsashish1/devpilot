@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# Python cache and builds
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Production builds
+dist/
+build/
+out/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+*.log
+Thumbs.db

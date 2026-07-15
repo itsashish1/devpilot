@@ -1,0 +1,16 @@
+{
+  "name": "devpilot-root",
+  "version": "1.0.0",
+  "description": "DevPilot - AI-Powered Career Preparation and Job Aggregator Platform",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm install --prefix client --legacy-peer-deps && npm install --prefix server-express --legacy-peer-deps",
+    "dev:client": "npm run dev --prefix client",
+    "dev:express": "npm run dev --prefix server-express",
+    "dev:fastapi": "cd server-fastapi && uvicorn main:app --reload --port 8000",
+    "dev": "npx concurrently \"npm run dev:client\" \"npm run dev:express\" \"npm run dev:fastapi\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

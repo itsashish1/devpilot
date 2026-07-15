@@ -1,0 +1,66 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String           @id @default(uuid())
+  email          String           @unique
+  passwordHash   String
+  name           String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  profile        Profile?
+  applications   JobApplication[]
+}
+
+model Profile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  githubUsername   String?
+  leetcodeUsername String?
+  resumeUrl        String?
+  resumeText       String?  @db.Text
+  skills           String[]
+  targetRole       String?
+  analysisResult   String?  @db.Text
+  updatedAt        DateTime @updatedAt
+}
+
+model Job {
+  id           String   @id @default(uuid())
+  title        String
+  company      String
+  location     String
+  description  String   @db.Text
+  salary       String?
+  url          String
+  tags         String[]
+  createdAt    DateTime @default(now())
+}
+
+model JobApplication {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle  String
+  company   String
+  status    ApplicationStatus @default(SAVED)
+  appliedAt DateTime?
+  notes     String?           @db.Text
+  updatedAt DateTime          @updatedAt
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  INTERVIEWING
+  OFFERED
+  REJECTED
+}
