@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../App";
 import { LogIn, UserPlus, Mail, Lock, User, ArrowRight, ShieldCheck, RefreshCw, ArrowLeft } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,6 +14,33 @@ export default function Auth() {
   const [resendMessage, setResendMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken: credentialResponse.credential }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Google authentication failed");
+      }
+
+      login(data.token, data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError("Google Sign-In failed. Please try again.");
+  };
 
   // Countdown timer for Resend OTP
   const [countdown, setCountdown] = useState(0);
@@ -302,6 +330,22 @@ export default function Auth() {
                 {!loading && <ArrowRight size={18} />}
               </button>
             </form>
+
+            <div style={{ display: "flex", alignItems: "center", margin: "20px 0", color: "var(--text-secondary)" }}>
+              <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.1)" }}></div>
+              <span style={{ padding: "0 10px", fontSize: "12px", textTransform: "uppercase" }}>or</span>
+              <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.1)" }}></div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="filled_blue"
+                shape="rectangular"
+                width="360"
+              />
+            </div>
           </>
         ) : (
           <div className="animate-fade">

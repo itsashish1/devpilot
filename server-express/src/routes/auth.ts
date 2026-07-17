@@ -3,9 +3,11 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../db";
 import { sendOTPEmail } from "../utils/mailer";
+import { OAuth2Client } from "google-auth-library";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "devpilot_super_secret_token_123";
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Helper to generate 6-digit OTP
 const generateOTP = (): string => {
@@ -207,6 +209,10 @@ router.post("/login", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
+    if (!user.passwordHash) {
+      return res.status(400).json({ error: "This account was created with Google Sign-In. Please log in using Google." });
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid email or password" });
@@ -248,6 +254,82 @@ router.post("/login", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Login error:", error);
     return res.status(500).json({ error: "Something went wrong during login" });
+  }
+});
+
+// Google Login Endpoint
+router.post("/google", async (req: Request, res: Response) => {
+  const { idToken } = req.body;
+
+  if (!idToken) {
+    return res.status(400).json({ error: "Missing Google ID Token" });
+  }
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(400).json({ error: "Invalid ID Token" });
+    }
+
+    const { email, name, sub: googleId } = payload;
+
+    // Check if user exists by email
+    let user = await prisma.user.findUnique({
+      where: { email },
+      include: { profile: true },
+    });
+
+    if (user) {
+      // Link Google ID if not already set, mark verified
+      if (!user.googleId || user.googleId !== googleId || !user.isVerified) {
+        user = await prisma.user.update({
+          where: { email },
+          data: {
+            googleId,
+            isVerified: true
+          },
+          include: { profile: true },
+        });
+      }
+    } else {
+      // Create new user
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: name || "Google User",
+          googleId,
+          isVerified: true,
+          profile: {
+            create: {
+              skills: [],
+            },
+          },
+        },
+        include: {
+          profile: true,
+        },
+      });
+    }
+
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+
+    return res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profile: user.profile,
+      },
+    });
+  } catch (error: any) {
+    console.error("Google login error:", error);
+    return res.status(500).json({ error: "Google authentication failed" });
   }
 });
 
