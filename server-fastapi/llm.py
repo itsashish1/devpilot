@@ -28,17 +28,17 @@ def query_llm(prompt: str, system_prompt: str = "You are a helpful assistant.", 
             headers = {
                 "x-api-key": anthropic_key,
                 "anthropic-version": "2023-06-01",
-                "content-type": "application/json"
+                "content-type": "application/json",
+                "accept-encoding": "identity"
             }
             
+            combined_prompt = f"[System Instructions]\n{system_prompt}\n\n[User Request]\n{prompt}"
             payload = {
                 "model": "claude-sonnet-5",
                 "max_tokens": 4000,
-                "system": system_prompt,
                 "messages": [
-                    {"role": "user", "content": prompt}
-                ],
-                "temperature": temperature
+                    {"role": "user", "content": combined_prompt}
+                ]
             }
             
             response = requests.post(endpoint, headers=headers, json=payload, timeout=30)

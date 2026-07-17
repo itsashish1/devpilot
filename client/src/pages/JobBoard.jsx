@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../App";
-import { Briefcase, MapPin, DollarSign, Calendar, Star, FileText, ChevronRight, Check, X, ShieldAlert, Cpu } from "lucide-react";
+import { Briefcase, MapPin, DollarSign, Calendar, Star, FileText, ChevronRight, Check, X, ShieldAlert, Cpu, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function JobBoard() {
@@ -27,6 +27,21 @@ export default function JobBoard() {
     try {
       const res = await fetch("http://localhost:5000/api/jobs");
       if (!res.ok) throw new Error("Failed to retrieve jobs database");
+      const data = await res.json();
+      setJobs(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefreshJobs = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("http://localhost:5000/api/jobs?refresh=true");
+      if (!res.ok) throw new Error("Failed to sync live jobs");
       const data = await res.json();
       setJobs(data);
     } catch (err) {
@@ -124,9 +139,20 @@ export default function JobBoard() {
           <h1>Job Finder</h1>
           <p>Find technical openings matching your coding profiles, scored by compatibility.</p>
         </div>
-        <span className="badge badge-secondary" style={{ padding: "8px 12px", borderRadius: "8px" }}>
-          Target: {user?.profile?.targetRole || "All Positions"}
-        </span>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <button
+            onClick={handleRefreshJobs}
+            className="btn-secondary"
+            style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 14px", borderRadius: "8px", fontSize: "13px" }}
+            disabled={loading}
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            Sync Live Jobs
+          </button>
+          <span className="badge badge-secondary" style={{ padding: "8px 12px", borderRadius: "8px" }}>
+            Target: {user?.profile?.targetRole || "All Positions"}
+          </span>
+        </div>
       </div>
 
       {error && (
@@ -141,9 +167,53 @@ export default function JobBoard() {
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px" }}>
-          {jobs.map((job) => {
-            const score = calculateLocalMatch(job.tags);
-            return (
+          {(() => {
+            const targetRole = user?.profile?.targetRole || "";
+            const techKeywords = [
+              "software", "developer", "engineer", "frontend", "backend", "full-stack", "fullstack", 
+              "programmer", "react", "node", "typescript", "javascript", "python", "java", "c++", 
+              "devops", "cloud", "aws", "kubernetes", "docker", "ai", "machine learning", "ml", "data", "qa", 
+              "testing", "ui", "ux", "mobile", "ios", "android", "coder", "sde"
+            ];
+
+            // 1. Filter out completely non-tech/unnecessary jobs
+            const techJobs = jobs.filter(job => {
+              const titleLower = job.title.toLowerCase();
+              const tagsLower = (job.tags || []).map(t => t.toLowerCase());
+              return techKeywords.some(kw => 
+                titleLower.includes(kw) || 
+                tagsLower.some(t => t.includes(kw))
+              );
+            });
+
+            // 2. Filter by user's target role keywords
+            let finalJobs = techJobs;
+            if (targetRole && targetRole.trim() !== "") {
+              const roleKeywords = targetRole.toLowerCase()
+                .replace(/[^a-zA-Z0-9\s]/g, "")
+                .split(/\s+/)
+                .filter(w => w.length > 2);
+                
+              if (roleKeywords.length > 0) {
+                finalJobs = techJobs.filter(job => {
+                  const titleLower = job.title.toLowerCase();
+                  const descLower = job.description.toLowerCase();
+                  const tagsLower = (job.tags || []).map(t => t.toLowerCase());
+                  return roleKeywords.some(kw => 
+                    titleLower.includes(kw) || 
+                    descLower.includes(kw) || 
+                    tagsLower.some(t => t.includes(kw))
+                  );
+                });
+              }
+            }
+
+            // Fallback to all tech jobs if target filtering yields zero results
+            const jobsToRender = finalJobs.length > 0 ? finalJobs : techJobs;
+
+            return jobsToRender.map((job) => {
+              const score = calculateLocalMatch(job.tags);
+              return (
               <div
                 key={job.id}
                 className="glass-panel"
@@ -202,12 +272,34 @@ export default function JobBoard() {
                   
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
                     <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Audit Compatibility</span>
-                    <ChevronRight size={18} color="var(--primary)" />
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      {job.url && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(job.url, "_blank", "noopener,noreferrer");
+                          }}
+                          className="btn-secondary"
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "6px",
+                            fontSize: "11px",
+                            background: "rgba(255, 255, 255, 0.05)",
+                            border: "1px solid var(--border-color)",
+                            color: "var(--text-primary)"
+                          }}
+                        >
+                          View Site
+                        </button>
+                      )}
+                      <ChevronRight size={18} color="var(--primary)" />
+                    </div>
                   </div>
                 </div>
               </div>
             );
-          })}
+          });
+        })()}
         </div>
       )}
 
@@ -326,6 +418,15 @@ export default function JobBoard() {
               >
                 {savingApp ? "Saving..." : appSaved ? "Job Saved ✓" : "Track Application"}
               </button>
+
+              {selectedJob.url && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => window.open(selectedJob.url, "_blank", "noopener,noreferrer")}
+                >
+                  View Site
+                </button>
+              )}
             </div>
 
           </div>

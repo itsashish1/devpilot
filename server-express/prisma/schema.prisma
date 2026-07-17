@@ -13,6 +13,9 @@ model User {
   email          String           @unique
   passwordHash   String
   name           String
+  isVerified     Boolean          @default(false)
+  otpCode        String?
+  otpExpiry      DateTime?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   profile        Profile?
@@ -20,17 +23,27 @@ model User {
 }
 
 model Profile {
-  id               String   @id @default(uuid())
-  userId           String   @unique
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String        @id @default(uuid())
+  userId           String        @unique
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   githubUsername   String?
   leetcodeUsername String?
   resumeUrl        String?
-  resumeText       String?  @db.Text
+  resumeText       String?       @db.Text
   skills           String[]
   targetRole       String?
-  analysisResult   String?  @db.Text
-  updatedAt        DateTime @updatedAt
+  analysisResult   String?       @db.Text
+  updatedAt        DateTime      @updatedAt
+  audits           ResumeAudit[]
+}
+
+model ResumeAudit {
+  id             String   @id @default(uuid())
+  profileId      String
+  profile        Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  resumeText     String   @db.Text
+  analysisResult String   @db.Text
+  createdAt      DateTime @default(now())
 }
 
 model Job {

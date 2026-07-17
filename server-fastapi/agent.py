@@ -203,13 +203,26 @@ def create_roadmap(state: AgentState) -> Dict[str, Any]:
 builder = StateGraph(AgentState)
 
 # Add nodes
-builder.add_node("synthesize", synthesize_profile)
 builder.add_node("analyze_resume", analyze_resume)
+builder.add_node("synthesize", synthesize_profile)
 builder.add_node("create_roadmap", create_roadmap)
 
 # Define edges
 builder.set_entry_point("synthesize")
-builder.add_edge("synthesize", "analyze_resume")
+
+def should_analyze_resume(state: AgentState) -> str:
+    if not state.get("resume_text") or not state.get("resume_text").strip():
+        return "end"
+    return "analyze_resume"
+
+builder.add_conditional_edges(
+    "synthesize",
+    should_analyze_resume,
+    {
+        "analyze_resume": "analyze_resume",
+        "end": END
+    }
+)
 builder.add_edge("analyze_resume", "create_roadmap")
 builder.add_edge("create_roadmap", END)
 

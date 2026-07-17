@@ -3,74 +3,101 @@ import prisma from "../db";
 
 const router = Router();
 
-// Sample seed jobs
-const SEED_JOBS = [
-  {
-    title: "Software Engineer (Frontend)",
-    company: "TechNova Solutions",
-    location: "Remote (USA / Europe)",
-    description: "We are looking for a Senior React Engineer experienced in state management, responsive designs, and modern CSS frameworks. You will lead the development of our flagship SaaS product.",
-    salary: "$110,000 - $140,000",
-    url: "https://example.com/jobs/1",
-    tags: ["React", "JavaScript", "CSS", "Frontend", "Zustand"]
-  },
-  {
-    title: "Backend Engineer (Node.js & Prisma)",
-    company: "CloudVibe Technologies",
-    location: "Bengaluru, India (Hybrid)",
-    description: "Seeking a Backend Engineer proficient in Node.js, Express, TypeScript, and Postgres. Familiarity with ORMs like Prisma and caching systems like Redis is highly desired.",
-    salary: "₹12,00,000 - ₹18,00,000",
-    url: "https://example.com/jobs/2",
-    tags: ["Node.js", "Express", "TypeScript", "PostgreSQL", "Prisma", "Backend"]
-  },
-  {
-    title: "AI Agent & LangChain Developer",
-    company: "Cerebro AI",
-    location: "San Francisco, CA (Onsite)",
-    description: "Join our core AI team. You will build and scale multi-agent LLM systems using LangGraph, FastAPI, and Vector Databases. Experience in engineering prompt graphs is required.",
-    salary: "$140,000 - $180,000",
-    url: "https://example.com/jobs/3",
-    tags: ["Python", "FastAPI", "LangGraph", "Gemini", "AI", "Vector DB"]
-  },
-  {
-    title: "DevOps Engineer (AWS & Kubernetes)",
-    company: "ScaleGrid Systems",
-    location: "Remote (India)",
-    description: "Scale and monitor cloud infrastructures. Strong skills in Docker, AWS, Kubernetes, Terraform, and CI/CD pipelines are needed.",
-    salary: "₹15,00,000 - ₹22,00,000",
-    url: "https://example.com/jobs/4",
-    tags: ["Docker", "Kubernetes", "AWS", "Terraform", "CI/CD", "DevOps"]
-  },
-  {
-    title: "Full Stack Engineer (MERN)",
-    company: "Velocity Hub",
-    location: "Mumbai, India (Hybrid)",
-    description: "Build robust full-stack solutions. Require strong hands-on experience in React.js, Express, MongoDB, Node.js, and deploying containerized applications.",
-    salary: "₹8,00,000 - ₹12,00,000",
-    url: "https://example.com/jobs/5",
-    tags: ["React", "Node.js", "Express", "MongoDB", "JavaScript", "Full Stack"]
-  },
-  {
-    title: "Junior Python Backend Developer",
-    company: "PyStream Systems",
-    location: "Remote (Global)",
-    description: "Great entry level position. You will assist in writing API endpoints using FastAPI and Flask, configuring databases, and writing unit tests.",
-    salary: "$50,000 - $70,000",
-    url: "https://example.com/jobs/6",
-    tags: ["Python", "FastAPI", "Flask", "PostgreSQL", "Backend"]
-  }
-];
-
-// Get all jobs (auto seeds if database is empty)
-router.get("/", async (req: Request, res: Response) => {
+// Helper to fetch live jobs from both Arbeitnow (Global) and Himalayas (India / Remote)
+async function fetchAndSyncRealJobs() {
   try {
+    const jobsToInsert: any[] = [];
+
+    // 1. Fetch from Arbeitnow (Global / Remote Tech)
+    try {
+      console.log("Fetching live listings from Arbeitnow API...");
+      const response = await fetch("https://www.arbeitnow.com/api/job-board-api");
+      if (response.ok) {
+        const payload = await response.json() as any;
+        if (payload && Array.isArray(payload.data)) {
+          payload.data.forEach((item: any) => {
+            const cleanDescription = item.description 
+              ? item.description.replace(/<\/?[^>]+(>|$)/g, "")
+              : "No description provided.";
+              
+            jobsToInsert.push({
+              title: item.title,
+              company: item.company_name,
+              location: item.remote ? `${item.location} (Remote)` : item.location,
+              description: cleanDescription,
+              salary: "$80,000 - $120,000",
+              url: item.url,
+              tags: item.tags || ["Software Developer"],
+            });
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch from Arbeitnow:", err);
+    }
+
+    // 2. Fetch from Himalayas (India Tech / Remote)
+    try {
+      console.log("Fetching live Indian tech listings from Himalayas API...");
+      const response = await fetch("https://himalayas.app/jobs/api/search?country=IN");
+      if (response.ok) {
+        const payload = await response.json() as any;
+        if (payload && Array.isArray(payload.jobs)) {
+          payload.jobs.forEach((item: any) => {
+            const cleanDescription = item.description 
+              ? item.description.replace(/<\/?[^>]+(>|$)/g, "")
+              : "No description provided.";
+
+            const salaryStr = item.minSalary && item.maxSalary 
+              ? `${item.currency || "USD"} ${item.minSalary.toLocaleString()} - ${item.maxSalary.toLocaleString()}`
+              : "₹8,00,000 - ₹15,00,000";
+
+            jobsToInsert.push({
+              title: item.title,
+              company: item.companyName,
+              location: item.locationRestrictions && item.locationRestrictions.length > 0 
+                ? `${item.locationRestrictions.join(", ")}` 
+                : "India (Remote)",
+              description: cleanDescription,
+              salary: salaryStr,
+              url: item.applicationLink || item.guid || "https://himalayas.app/jobs",
+              tags: item.categories || ["Software Developer"],
+            });
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch from Himalayas India:", err);
+    }
+
+    if (jobsToInsert.length > 0) {
+      // Clear existing jobs to populate fresh listings
+      await prisma.job.deleteMany();
+      await prisma.job.createMany({
+        data: jobsToInsert
+      });
+      console.log(`Successfully synced ${jobsToInsert.length} 100% real-time jobs from APIs!`);
+    }
+  } catch (err) {
+    console.error("Failed to sync real-time jobs:", err);
+  }
+}
+
+// Get all jobs (auto seeds if database is empty, supports ?refresh=true)
+router.get("/", async (req: Request, res: Response) => {
+  const refresh = req.query.refresh === "true";
+
+  try {
+    if (refresh) {
+      console.log("Forced refresh: Syncing real-time jobs...");
+      await fetchAndSyncRealJobs();
+    }
+
     let jobs = await prisma.job.findMany();
 
     if (jobs.length === 0) {
-      console.log("No jobs found, seeding sample jobs...");
-      await prisma.job.createMany({
-        data: SEED_JOBS,
-      });
+      console.log("No jobs found, syncing real-time jobs...");
+      await fetchAndSyncRealJobs();
       jobs = await prisma.job.findMany();
     }
 
