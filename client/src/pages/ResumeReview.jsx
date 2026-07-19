@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../App";
+import { API_BASE_URL, AI_API_BASE_URL } from "../config";
 import { FileText, Cpu, AlertTriangle, CheckCircle, RefreshCw, BarChart2, History, Clock, ArrowLeft } from "lucide-react";
 
 export default function ResumeReview() {
@@ -8,6 +9,7 @@ export default function ResumeReview() {
   const [resumeText, setResumeText] = useState(user?.profile?.resumeText || "");
   const [analyzing, setAnalyzing] = useState(false);
   const [parsing, setParsing] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState("");
   const fileInputRef = useRef(null);
   const [error, setError] = useState("");
   const [result, setResult] = useState(() => {
@@ -26,7 +28,7 @@ export default function ResumeReview() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/profile/audits", {
+      const res = await fetch(`${API_BASE_URL}/api/profile/audits`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -52,12 +54,13 @@ export default function ResumeReview() {
 
     setParsing(true);
     setError("");
+    setUploadedFileName("");
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://localhost:8000/api/ai/parse-resume", {
+      const res = await fetch(`${AI_API_BASE_URL}/api/ai/parse-resume`, {
         method: "POST",
         body: formData,
       });
@@ -69,8 +72,10 @@ export default function ResumeReview() {
 
       const data = await res.json();
       setResumeText(data.text);
+      setUploadedFileName(file.name);
     } catch (err) {
       setError(err.message || "Failed to parse file.");
+      setUploadedFileName("");
     } finally {
       setParsing(false);
     }
@@ -88,7 +93,7 @@ export default function ResumeReview() {
 
     try {
       // 1. Update the resumeText in Express database
-      const saveRes = await fetch("http://localhost:5000/api/profile", {
+      const saveRes = await fetch(`${API_BASE_URL}/api/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +117,7 @@ export default function ResumeReview() {
         skills: user?.profile?.skills || [],
       };
 
-      const aiRes = await fetch("http://localhost:8000/api/ai/analyze", {
+      const aiRes = await fetch(`${AI_API_BASE_URL}/api/ai/analyze`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,7 +133,7 @@ export default function ResumeReview() {
       setResult(aiData);
 
       // 3. Cache the analysis result back in Express Database
-      await fetch("http://localhost:5000/api/profile", {
+      await fetch(`${API_BASE_URL}/api/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -184,17 +189,19 @@ export default function ResumeReview() {
             type="file"
             ref={fileInputRef}
             onChange={handleFileUpload}
-            accept=".pdf,.docx,.doc,.txt"
+            accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg"
             style={{ display: "none" }}
           />
 
           {/* File Upload Card */}
           <div style={{
-            border: "1px dashed var(--border-color)",
-            borderRadius: "6px",
+            border: uploadedFileName ? "1px solid var(--success)" : "1px dashed var(--border-color)",
+            borderRadius: "12px",
             padding: "24px",
             textAlign: "center",
-            background: selectedHistoryItem ? "#F9FAFB" : "#FAFAFA",
+            background: uploadedFileName 
+              ? "rgba(16, 185, 129, 0.04)" 
+              : selectedHistoryItem ? "rgba(255, 255, 255, 0.01)" : "rgba(255, 255, 255, 0.03)",
             cursor: selectedHistoryItem ? "not-allowed" : "pointer",
             transition: "var(--transition)"
           }}
@@ -208,16 +215,33 @@ export default function ResumeReview() {
             if (!selectedHistoryItem) e.currentTarget.style.borderColor = "var(--border-hover)";
           }}
           onMouseOut={(e) => {
-            if (!selectedHistoryItem) e.currentTarget.style.borderColor = "var(--border-color)";
+            if (!selectedHistoryItem) e.currentTarget.style.borderColor = uploadedFileName ? "var(--success)" : "var(--border-color)";
           }}
           >
-            <FileText size={32} style={{ color: parsing ? "var(--primary)" : "var(--text-secondary)", marginBottom: "12px", margin: "0 auto" }} className={parsing ? "animate-pulse" : ""} />
-            <h3 style={{ fontSize: "14px", marginTop: "8px" }}>
-              {parsing ? "Parsing Resume..." : selectedHistoryItem ? "Upload Disabled in History View" : "Upload Resume (PDF, DOCX, TXT)"}
-            </h3>
-            <p style={{ fontSize: "12px", marginTop: "4px" }}>
-              {parsing ? "Extracting document content..." : selectedHistoryItem ? "Exit history mode to upload a new file" : "Click to select a document from your computer"}
-            </p>
+            {uploadedFileName ? (
+              <>
+                <CheckCircle size={32} style={{ color: "var(--success)", marginBottom: "12px", margin: "0 auto" }} />
+                <h3 style={{ fontSize: "14px", marginTop: "8px", color: "var(--success)", fontWeight: "600" }}>
+                  Successfully Loaded
+                </h3>
+                <p style={{ fontSize: "12px", marginTop: "4px", color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "260px", margin: "4px auto 0" }}>
+                  {uploadedFileName}
+                </p>
+                <span style={{ fontSize: "11px", color: "var(--primary)", textDecoration: "underline", display: "inline-block", marginTop: "8px", fontWeight: "500" }}>
+                  Click to upload a different file
+                </span>
+              </>
+            ) : (
+              <>
+                <FileText size={32} style={{ color: parsing ? "var(--primary)" : "var(--text-secondary)", marginBottom: "12px", margin: "0 auto" }} className={parsing ? "animate-pulse" : ""} />
+                <h3 style={{ fontSize: "14px", marginTop: "8px" }}>
+                  {parsing ? "Parsing Resume..." : selectedHistoryItem ? "Upload Disabled in History View" : "Upload Resume (PDF, Image, DOCX, TXT)"}
+                </h3>
+                <p style={{ fontSize: "12px", marginTop: "4px" }}>
+                  {parsing ? "Extracting document content..." : selectedHistoryItem ? "Exit history mode to upload a new file" : "Click to select a document or image from your computer"}
+                </p>
+              </>
+            )}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -237,12 +261,17 @@ export default function ResumeReview() {
                 height: "240px", 
                 resize: "none", 
                 fontSize: "13px",
-                background: selectedHistoryItem ? "#F9FAFB" : "#FFFFFF",
+                background: "var(--input-bg)",
                 cursor: selectedHistoryItem ? "not-allowed" : "text"
               }}
               placeholder="Paste work experience, project descriptions, skills, and summary here..."
               value={displayResumeText}
-              onChange={(e) => setResumeText(e.target.value)}
+              onChange={(e) => {
+                setResumeText(e.target.value);
+                if (!e.target.value.trim()) {
+                  setUploadedFileName("");
+                }
+              }}
               disabled={!!selectedHistoryItem}
             />
           </div>
@@ -308,7 +337,7 @@ export default function ResumeReview() {
               )}
 
               {/* Score card */}
-              <div className="glass-card" style={{ display: "flex", alignItems: "center", justifyItems: "center", gap: "24px", padding: "24px" }}>
+              <div className="glass-card" style={{ display: "flex", alignItems: "center", justifyItems: "center", gap: "24px", padding: "24px", flexWrap: "wrap" }}>
                 <div style={{
                   width: "90px",
                   height: "90px",
@@ -425,7 +454,7 @@ export default function ResumeReview() {
                     gap: "16px",
                     padding: "14px 20px",
                     borderColor: isCurrentView ? "var(--primary)" : "var(--border-color)",
-                    background: isCurrentView ? "var(--primary-glow)" : "#FFFFFF"
+                    background: isCurrentView ? "var(--primary-glow)" : "rgba(255, 255, 255, 0.02)"
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>

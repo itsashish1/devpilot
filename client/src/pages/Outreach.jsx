@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../App";
+import { AI_API_BASE_URL } from "../config";
 import { useLocation } from "react-router-dom";
 import { Mail, Send, Copy, Check, Cpu } from "lucide-react";
 
@@ -12,6 +13,7 @@ export default function Outreach() {
   const [jobDescription, setJobDescription] = useState("");
   const [githubProjects, setGithubProjects] = useState("");
   const [userName, setUserName] = useState("");
+  const [outreachType, setOutreachType] = useState("email"); // "email", "linkedin_note", or "linkedin_message"
 
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
@@ -54,9 +56,10 @@ export default function Outreach() {
         github_projects: projectList,
         skills: user?.profile?.skills || [],
         user_name: userName || "Candidate",
+        outreach_type: outreachType
       };
 
-      const res = await fetch("http://localhost:8000/api/ai/cold-email", {
+      const res = await fetch(`${AI_API_BASE_URL}/api/ai/cold-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -65,7 +68,7 @@ export default function Outreach() {
       if (!res.ok) throw new Error("Failed to generate custom outreach draft");
 
       const data = await res.json();
-      setEmailSubject(data.email_subject);
+      setEmailSubject(data.email_subject || "");
       setEmailBody(data.email_body);
     } catch (err) {
       setError(err.message);
@@ -75,7 +78,7 @@ export default function Outreach() {
   };
 
   const handleCopyToClipboard = () => {
-    const fullText = `Subject: ${emailSubject}\n\n${emailBody}`;
+    const fullText = outreachType === "email" ? `Subject: ${emailSubject}\n\n${emailBody}` : emailBody;
     navigator.clipboard.writeText(fullText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -94,10 +97,75 @@ export default function Outreach() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: "32px" }}>
+      <div className="grid-2" style={{ zIndex: 1, position: "relative" }}>
         {/* Left Side Inputs Form */}
         <div className="glass-panel" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <h2>Target Specifications</h2>
+
+          {/* Format Selector Tab */}
+          <div style={{
+            display: "flex",
+            background: "rgba(255, 255, 255, 0.03)",
+            border: "1px solid var(--border-color)",
+            borderRadius: "10px",
+            padding: "4px",
+            marginBottom: "10px"
+          }}>
+            <button
+              type="button"
+              onClick={() => { setOutreachType("email"); setEmailBody(""); setEmailSubject(""); }}
+              style={{
+                flex: 1,
+                background: outreachType === "email" ? "var(--primary)" : "transparent",
+                color: outreachType === "email" ? "#ffffff" : "var(--text-secondary)",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "12px",
+                transition: "var(--transition)"
+              }}
+            >
+              Email Pitch
+            </button>
+            <button
+              type="button"
+              onClick={() => { setOutreachType("linkedin_note"); setEmailBody(""); setEmailSubject(""); }}
+              style={{
+                flex: 1,
+                background: outreachType === "linkedin_note" ? "var(--primary)" : "transparent",
+                color: outreachType === "linkedin_note" ? "#ffffff" : "var(--text-secondary)",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "12px",
+                transition: "var(--transition)"
+              }}
+            >
+              LinkedIn Note
+            </button>
+            <button
+              type="button"
+              onClick={() => { setOutreachType("linkedin_message"); setEmailBody(""); setEmailSubject(""); }}
+              style={{
+                flex: 1,
+                background: outreachType === "linkedin_message" ? "var(--primary)" : "transparent",
+                color: outreachType === "linkedin_message" ? "#ffffff" : "var(--text-secondary)",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "12px",
+                transition: "var(--transition)"
+              }}
+            >
+              LinkedIn DM
+            </button>
+          </div>
 
           <form onSubmit={handleGenerate} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div>
@@ -184,7 +252,7 @@ export default function Outreach() {
         <div className="glass-panel" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h2>Outreach Pitch</h2>
-            {emailBody && (
+            {emailBody && outreachType === "email" && (
               <button
                 className="btn-secondary"
                 style={{ padding: "8px 14px", fontSize: "13px", gap: "6px" }}
@@ -198,14 +266,126 @@ export default function Outreach() {
 
           {emailBody ? (
             <div className="animate-fade" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div className="glass-card">
-                <p style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", color: "var(--primary)" }}>Subject Line</p>
-                <h3 style={{ marginTop: "4px", fontSize: "15px", color: "#fff" }}>{emailSubject}</h3>
-              </div>
+              {outreachType === "email" && (
+                <>
+                  <div className="glass-card">
+                    <p style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", color: "var(--primary)" }}>Subject Line</p>
+                    <h3 style={{ marginTop: "4px", fontSize: "15px", color: "#fff" }}>{emailSubject}</h3>
+                  </div>
 
-              <div className="glass-card" style={{ whiteSpace: "pre-line", fontSize: "13.5px", lineHeight: "1.6", height: "400px", overflowY: "auto", background: "rgba(0,0,0,0.1)" }}>
-                {emailBody}
-              </div>
+                  <div className="glass-card" style={{ whiteSpace: "pre-line", fontSize: "13.5px", lineHeight: "1.6", height: "400px", overflowY: "auto", background: "rgba(8, 11, 17, 0.55)" }}>
+                    {emailBody}
+                  </div>
+                </>
+              )}
+
+              {outreachType === "linkedin_note" && (
+                <div className="linkedin-sim-card animate-fade">
+                  <div className="linkedin-sim-header">
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ background: "#0A66C2", width: "8px", height: "8px", borderRadius: "50%" }}></div>
+                      <span style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF" }}>Invite connection note</span>
+                    </div>
+                    <span className="linkedin-badge">LinkedIn Invite</span>
+                  </div>
+
+                  <div className="linkedin-sim-body" style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                    <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", margin: 0 }}>
+                      Personalize your invitation note to connect (300 character limit).
+                    </p>
+
+                    <textarea
+                      className="linkedin-sim-textarea"
+                      rows={5}
+                      value={emailBody}
+                      onChange={(e) => setEmailBody(e.target.value)}
+                      maxLength={300}
+                    />
+
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ 
+                        fontSize: "12px", 
+                        color: emailBody.length >= 300 ? "var(--error)" : "rgba(255,255,255,0.5)",
+                        fontWeight: emailBody.length >= 300 ? "600" : "400"
+                      }}>
+                        {emailBody.length} / 300 characters
+                      </span>
+                      <button 
+                        type="button" 
+                        className="btn-linkedin"
+                        onClick={handleCopyToClipboard}
+                      >
+                        {copied ? <Check size={14} /> : <Copy size={14} />}
+                        {copied ? "Copied Note" : "Copy Note"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {outreachType === "linkedin_message" && (
+                <div className="linkedin-sim-card animate-fade">
+                  <div className="linkedin-sim-header">
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ background: "#059669", width: "8px", height: "8px", borderRadius: "50%" }}></div>
+                      <span style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF" }}>Direct Message</span>
+                    </div>
+                    <span className="linkedin-badge">LinkedIn DM</span>
+                  </div>
+
+                  <div className="linkedin-sim-body" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                      <div style={{ 
+                        background: "linear-gradient(135deg, #0A66C2 0%, #004182 100%)", 
+                        width: "36px", 
+                        height: "36px", 
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "700",
+                        fontSize: "13px",
+                        color: "#FFFFFF",
+                        boxShadow: "0 2px 8px rgba(10, 102, 194, 0.4)",
+                        flexShrink: 0
+                      }}>
+                        {userName.substring(0, 2).toUpperCase()}
+                      </div>
+
+                      <div style={{
+                        background: "#293138",
+                        borderRadius: "0 12px 12px 12px",
+                        padding: "14px 18px",
+                        flex: 1,
+                        border: "1px solid rgba(255, 255, 255, 0.05)"
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "12px", fontWeight: "600", color: "#FFFFFF" }}>{userName}</span>
+                          <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)" }}>Draft</span>
+                        </div>
+                        <textarea
+                          className="linkedin-sim-textarea"
+                          style={{ background: "transparent", border: "none", padding: 0, fontSize: "13.5px", boxShadow: "none" }}
+                          rows={8}
+                          value={emailBody}
+                          onChange={(e) => setEmailBody(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <button 
+                        type="button" 
+                        className="btn-linkedin"
+                        onClick={handleCopyToClipboard}
+                      >
+                        {copied ? <Check size={14} /> : <Copy size={14} />}
+                        {copied ? "Copied Message" : "Copy DM"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div style={{
@@ -221,7 +401,11 @@ export default function Outreach() {
             }}>
               <Mail size={48} style={{ opacity: 0.3, marginBottom: "16px" }} />
               <h3>Pitch Template Empty</h3>
-              <p style={{ marginTop: "6px" }}>Complete the target form specifications on the left panel to compose a customized pitch email draft.</p>
+              <p style={{ marginTop: "6px" }}>
+                {outreachType === "email" && "Complete the target form specifications on the left panel to compose a customized pitch email draft."}
+                {outreachType === "linkedin_note" && "Complete the target form specifications on the left panel to compose a customized LinkedIn connection note."}
+                {outreachType === "linkedin_message" && "Complete the target form specifications on the left panel to compose a customized LinkedIn direct message."}
+              </p>
             </div>
           )}
         </div>

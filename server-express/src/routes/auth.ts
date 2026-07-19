@@ -191,6 +191,91 @@ router.post("/resend-otp", async (req: Request, res: Response) => {
   }
 });
 
+// Forgot Password - Request OTP
+router.post("/forgot-password", async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Please provide your email address" });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({ error: "No account found with this email" });
+    }
+
+    if (!user.passwordHash) {
+      return res.status(400).json({ error: "This account uses Google Sign-In. You cannot reset its password." });
+    }
+
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    await prisma.user.update({
+      where: { email },
+      data: { otpCode: otp, otpExpiry },
+    });
+
+    await sendOTPEmail(email, otp, user.name || "User");
+
+    return res.status(200).json({ message: "Password reset OTP sent to your email." });
+  } catch (error: any) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+// Reset Password
+router.post("/reset-password", async (req: Request, res: Response) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({ error: "Please provide email, OTP, and new password" });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: "Password must be at least 6 characters long" });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (!user.otpCode || !user.otpExpiry) {
+      return res.status(400).json({ error: "No active password reset request found" });
+    }
+
+    const isCodeValid = user.otpCode === otp.trim();
+    const isNotExpired = new Date(user.otpExpiry) > new Date();
+
+    if (!isCodeValid || !isNotExpired) {
+      return res.status(400).json({ error: "Invalid or expired OTP code" });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { email },
+      data: {
+        passwordHash,
+        otpCode: null,
+        otpExpiry: null,
+        isVerified: true, // Just in case they weren't verified before
+      },
+    });
+
+    return res.status(200).json({ message: "Password reset successfully. You can now login." });
+  } catch (error: any) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ error: "Something went wrong during password reset" });
+  }
+});
+
 // Login
 router.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;

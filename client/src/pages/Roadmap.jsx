@@ -37,7 +37,7 @@ export default function Roadmap() {
       </div>
 
       {roadmap.length > 0 ? (
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "32px" }}>
+        <div className="roadmap-grid">
           
           {/* Timeline section */}
           <div className="glass-panel" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -72,7 +72,7 @@ export default function Roadmap() {
                       width: "14px",
                       height: "14px",
                       borderRadius: "50%",
-                      background: pct === 100 ? "var(--primary)" : "#FFFFFF",
+                      background: pct === 100 ? "var(--primary)" : "var(--bg-color)",
                       border: `2px solid ${pct === 100 ? "var(--primary)" : "var(--border-color)"}`,
                       display: "flex",
                       alignItems: "center",
@@ -107,7 +107,7 @@ export default function Roadmap() {
                                 gap: "10px",
                                 padding: "8px 12px",
                                 borderRadius: "6px",
-                                background: isDone ? "#F3F4F6" : "transparent",
+                                background: isDone ? "var(--primary-glow)" : "transparent",
                                 border: "1px solid var(--border-color)",
                                 cursor: "pointer",
                                 transition: "var(--transition)"

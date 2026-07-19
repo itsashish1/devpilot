@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../App";
+import { API_BASE_URL, AI_API_BASE_URL } from "../config";
 import { Briefcase, MapPin, DollarSign, Calendar, Star, FileText, ChevronRight, Check, X, ShieldAlert, Cpu, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +26,7 @@ export default function JobBoard() {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/jobs");
+      const res = await fetch(`${API_BASE_URL}/api/jobs`);
       if (!res.ok) throw new Error("Failed to retrieve jobs database");
       const data = await res.json();
       setJobs(data);
@@ -40,7 +41,7 @@ export default function JobBoard() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:5000/api/jobs?refresh=true");
+      const res = await fetch(`${API_BASE_URL}/api/jobs?refresh=true`);
       if (!res.ok) throw new Error("Failed to sync live jobs");
       const data = await res.json();
       setJobs(data);
@@ -64,7 +65,7 @@ export default function JobBoard() {
         skills: user?.profile?.skills || [],
       };
 
-      const res = await fetch("http://localhost:8000/api/ai/match", {
+      const res = await fetch(`${AI_API_BASE_URL}/api/ai/match`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -85,7 +86,7 @@ export default function JobBoard() {
     setSavingApp(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/applications", {
+      const res = await fetch(`${API_BASE_URL}/api/applications`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -134,12 +135,12 @@ export default function JobBoard() {
 
   return (
     <div className="animate-fade" style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "16px" }}>
         <div>
           <h1>Job Finder</h1>
           <p>Find technical openings matching your coding profiles, scored by compatibility.</p>
         </div>
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
           <button
             onClick={handleRefreshJobs}
             className="btn-secondary"
@@ -232,9 +233,9 @@ export default function JobBoard() {
                   position: "absolute",
                   top: "20px",
                   right: "20px",
-                  background: "rgba(37, 99, 235, 0.05)",
+                  background: "var(--primary-glow)",
                   color: "var(--primary)",
-                  border: "1px solid rgba(37, 99, 235, 0.2)",
+                  border: "1px solid rgba(99, 102, 241, 0.25)",
                   padding: "4px 8px",
                   borderRadius: "4px",
                   fontSize: "12px",
@@ -364,7 +365,7 @@ export default function JobBoard() {
                   </div>
 
                   {/* Skills lists */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
                     <div>
                       <p style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-secondary)" }}>Matching Skills</p>
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "6px" }}>
@@ -379,7 +380,7 @@ export default function JobBoard() {
                       <p style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-secondary)" }}>Missing Gaps</p>
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "6px" }}>
                         {matchDetails.missing_skills?.map((sk, idx) => (
-                          <span key={idx} className="badge" style={{ background: "#FAFAFA", border: "1px solid var(--border-color)", color: "var(--text-secondary)", fontSize: "10px" }}>{sk}</span>
+                          <span key={idx} className="badge" style={{ background: "rgba(255, 255, 255, 0.04)", border: "1px solid var(--border-color)", color: "var(--text-secondary)", fontSize: "10px" }}>{sk}</span>
                         ))}
                         {(!matchDetails.missing_skills || matchDetails.missing_skills.length === 0) && <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>None</span>}
                       </div>
@@ -387,7 +388,7 @@ export default function JobBoard() {
                   </div>
 
                   {/* Preparation tip */}
-                  <div style={{ background: "#FAFAFA", border: "1px solid var(--border-color)", padding: "12px", borderRadius: "6px", fontSize: "13px" }}>
+                  <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid var(--border-color)", padding: "12px", borderRadius: "8px", fontSize: "13px" }}>
                     <strong>Prep Tip: </strong>{matchDetails.preparation_tips}
                   </div>
                 </div>

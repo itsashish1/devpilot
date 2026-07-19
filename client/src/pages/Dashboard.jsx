@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../App";
+import { API_BASE_URL } from "../config";
 import { Github, Code, CheckCircle, Target, Award, User, RefreshCw, Send, Sparkles, Calendar, Zap, AlertTriangle, Trash2, Plus, ChevronRight } from "lucide-react";
 
 // Custom activity heatmap grid (flow column, 26 weeks x 7 days)
@@ -32,8 +33,8 @@ function ActivityHeatmap({ calendar, username, colorTheme }) {
   }
 
   const colors = {
-    green: ["#EBEDF0", "#C6E48B", "#7BC96F", "#239A3B", "#196127"],
-    orange: ["#EBEDF0", "#FFE4B5", "#FFA500", "#FF8C00", "#D2691E"]
+    green: ["rgba(255, 255, 255, 0.06)", "#C6E48B", "#7BC96F", "#239A3B", "#196127"],
+    orange: ["rgba(255, 255, 255, 0.06)", "#FFE4B5", "#FFA500", "#FF8C00", "#D2691E"]
   }[colorTheme || "green"];
 
   return (
@@ -88,7 +89,7 @@ export default function Dashboard() {
   const fetchApplications = async () => {
     try {
       setFetchingApps(true);
-      const res = await fetch("http://localhost:5000/api/applications", {
+      const res = await fetch(`${API_BASE_URL}/api/applications`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -117,7 +118,7 @@ export default function Dashboard() {
     
     const nextStatus = statusOrder[currentIndex + 1];
     try {
-      const res = await fetch(`http://localhost:5000/api/applications/${appId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/applications/${appId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -135,7 +136,7 @@ export default function Dashboard() {
 
   const handleDeleteApplication = async (appId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/applications/${appId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/applications/${appId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`
@@ -194,7 +195,7 @@ export default function Dashboard() {
       .filter((s) => s !== "");
 
     try {
-      const res = await fetch("http://localhost:5000/api/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -381,10 +382,10 @@ export default function Dashboard() {
 
       {/* AI Career Coach Reminders Panel */}
       <div 
-        className="glass-panel animate-fade" 
+        className="glass-panel animate-float shimmer-card" 
         style={{ 
-          background: "linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(16, 185, 129, 0.04) 100%)", 
-          border: "1px solid rgba(37, 99, 235, 0.15)",
+          background: "linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(168, 85, 247, 0.06) 100%)", 
+          border: "1px solid rgba(99, 102, 241, 0.2)",
           display: "flex", 
           flexDirection: "column", 
           gap: "14px",
@@ -406,7 +407,7 @@ export default function Dashboard() {
                 gap: "12px", 
                 padding: "10px 14px",
                 borderLeft: "4px solid var(--primary)",
-                background: "rgba(255, 255, 255, 0.6)"
+                background: "rgba(255, 255, 255, 0.02)"
               }}
             >
               {reminder.icon}
@@ -421,7 +422,7 @@ export default function Dashboard() {
       {/* Main Row Grid */}
       <div className="grid-3">
         {/* Metric 1: Resume Strength */}
-        <div className="glass-panel" style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <div className="glass-panel animate-slide-up delay-1" style={{ display: "flex", alignItems: "center", gap: "20px" }}>
           <div style={{ color: "var(--primary)", padding: "12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--primary-glow)" }}>
             <Award size={24} />
           </div>
@@ -434,7 +435,7 @@ export default function Dashboard() {
         </div>
 
         {/* Metric 2: LeetCode Solutions */}
-        <div className="glass-panel" style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <div className="glass-panel animate-slide-up delay-2" style={{ display: "flex", alignItems: "center", gap: "20px" }}>
           <div style={{ color: "var(--primary)", padding: "12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--primary-glow)" }}>
             <Code size={24} />
           </div>
@@ -447,7 +448,7 @@ export default function Dashboard() {
         </div>
 
         {/* Metric 3: Active Roadmaps */}
-        <div className="glass-panel" style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <div className="glass-panel animate-slide-up delay-3" style={{ display: "flex", alignItems: "center", gap: "20px" }}>
           <div style={{ color: "var(--primary)", padding: "12px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--primary-glow)" }}>
             <Target size={24} />
           </div>
@@ -483,7 +484,7 @@ export default function Dashboard() {
                   padding: "6px 10px", 
                   borderRadius: "6px", 
                   border: "1px solid var(--border-color)",
-                  background: checkedItems[item.id] ? "rgba(16, 185, 129, 0.03)" : "rgba(255, 255, 255, 0.3)",
+                  background: checkedItems[item.id] ? "rgba(16, 185, 129, 0.05)" : "var(--card-bg)",
                   textDecoration: checkedItems[item.id] ? "line-through" : "none",
                   color: checkedItems[item.id] ? "var(--text-secondary)" : "var(--text-primary)"
                 }}
@@ -509,7 +510,7 @@ export default function Dashboard() {
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "4px", maxHeight: "190px", overflowY: "auto", paddingRight: "4px" }}>
             {getResumeFeedback().length > 0 ? (
               getResumeFeedback().map((item, idx) => (
-                <div key={idx} className="glass-card" style={{ display: "flex", gap: "6px", padding: "6px 10px", borderLeft: "3px solid #F59E0B", background: "rgba(255,255,255,0.3)" }}>
+                <div key={idx} className="glass-card" style={{ display: "flex", gap: "6px", padding: "6px 10px", borderLeft: "3px solid #F59E0B", background: "var(--card-bg)" }}>
                   <p style={{ margin: 0, fontSize: "11px", color: "var(--text-primary)", lineHeight: "1.3" }}>{item}</p>
                 </div>
               ))
@@ -531,7 +532,7 @@ export default function Dashboard() {
             <p style={{ margin: 0, fontSize: "11.5px", color: "var(--text-secondary)", lineHeight: "1.4" }}>
               Solve targeted coding challenges to match technical role requirements.
             </p>
-            <div style={{ background: "rgba(37,99,235,0.03)", padding: "10px 12px", borderRadius: "6px", border: "1px solid rgba(37,99,235,0.1)", marginTop: "4px" }}>
+            <div style={{ background: "var(--primary-glow)", padding: "10px 12px", borderRadius: "6px", border: "1px solid rgba(99,102,241,0.15)", marginTop: "4px" }}>
               <span style={{ fontSize: "11.5px", fontWeight: "600", display: "block", color: "var(--text-primary)" }}>Today's Focus:</span>
               <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>Arrays, Hash Maps & Dynamic Programming</span>
             </div>
@@ -653,7 +654,7 @@ export default function Dashboard() {
               {user.githubStats.latestRepo && (
                 <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
                   <h4 style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "0 0 8px 0", textTransform: "uppercase", fontWeight: "600" }}>Latest Repository Update</h4>
-                  <div style={{ background: "rgba(249, 250, 251, 0.5)", borderRadius: "6px", padding: "10px", border: "1px solid var(--border-color)" }}>
+                  <div style={{ background: "rgba(255, 255, 255, 0.02)", borderRadius: "6px", padding: "10px", border: "1px solid var(--border-color)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
                       <a href={user.githubStats.latestRepo.url} target="_blank" rel="noreferrer" style={{ fontWeight: "600", fontSize: "13px", color: "var(--primary)", textDecoration: "underline" }}>
                         {user.githubStats.latestRepo.name}
@@ -694,7 +695,7 @@ export default function Dashboard() {
                     <span>Easy ({user.leetcodeStats.easy})</span>
                     <span>{easyPct}%</span>
                   </div>
-                  <div style={{ background: "#E5E7EB", height: "6px", borderRadius: "3px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
+                  <div style={{ background: "rgba(255, 255, 255, 0.08)", height: "6px", borderRadius: "3px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
                     <div style={{ background: "var(--success)", height: "100%", width: `${easyPct}%` }}></div>
                   </div>
                 </div>
@@ -704,7 +705,7 @@ export default function Dashboard() {
                     <span>Medium ({user.leetcodeStats.medium})</span>
                     <span>{medPct}%</span>
                   </div>
-                  <div style={{ background: "#E5E7EB", height: "6px", borderRadius: "3px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
+                  <div style={{ background: "rgba(255, 255, 255, 0.08)", height: "6px", borderRadius: "3px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
                     <div style={{ background: "var(--primary)", height: "100%", width: `${medPct}%` }}></div>
                   </div>
                 </div>
@@ -714,8 +715,8 @@ export default function Dashboard() {
                     <span>Hard ({user.leetcodeStats.hard})</span>
                     <span>{hardPct}%</span>
                   </div>
-                  <div style={{ background: "#E5E7EB", height: "6px", borderRadius: "3px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
-                    <div style={{ background: "#1D4ED8", height: "100%", width: `${hardPct}%` }}></div>
+                  <div style={{ background: "rgba(255, 255, 255, 0.08)", height: "6px", borderRadius: "3px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
+                    <div style={{ background: "var(--secondary)", height: "100%", width: `${hardPct}%` }}></div>
                   </div>
                 </div>
               </div>
@@ -732,7 +733,7 @@ export default function Dashboard() {
                   <h4 style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "0 0 8px 0", textTransform: "uppercase", fontWeight: "600" }}>Recently Solved Questions</h4>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {user.leetcodeStats.recentSubmissions.map((sub, idx) => (
-                      <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(249, 250, 251, 0.5)", borderRadius: "6px", padding: "8px 12px", border: "1px solid var(--border-color)" }}>
+                      <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255, 255, 255, 0.02)", borderRadius: "6px", padding: "8px 12px", border: "1px solid var(--border-color)" }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                           <span style={{ fontWeight: "600", fontSize: "13px", color: "var(--text-primary)" }}>{sub.title}</span>
                           <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>
@@ -787,15 +788,15 @@ export default function Dashboard() {
             {statuses.map(col => {
               const colApps = applications.filter(app => app.status === col.key);
               return (
-                <div key={col.key} className="glass-card" style={{ background: "rgba(249,250,251,0.4)", display: "flex", flexDirection: "column", minHeight: "220px", padding: "16px", borderRadius: "10px", border: "1px solid var(--border-color)" }}>
+                <div key={col.key} className="glass-card" style={{ background: "rgba(255, 255, 255, 0.02)", display: "flex", flexDirection: "column", minHeight: "220px", padding: "16px", borderRadius: "10px", border: "1px solid var(--border-color)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `2px solid ${col.color}`, paddingBottom: "8px", marginBottom: "12px" }}>
                     <span style={{ fontWeight: "700", color: col.color, fontSize: "14px", textTransform: "uppercase" }}>{col.label}</span>
-                    <span className="badge" style={{ fontSize: "11px", background: "rgba(0,0,0,0.05)" }}>{colApps.length}</span>
+                    <span className="badge" style={{ fontSize: "11px", background: "rgba(255, 255, 255, 0.06)" }}>{colApps.length}</span>
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px", flex: 1 }}>
                     {colApps.map(app => (
-                      <div key={app.id} className="glass-card animate-fade" style={{ background: "var(--bg-white)", padding: "10px 12px", border: "1px solid var(--border-color)", borderRadius: "6px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <div key={app.id} className="glass-card animate-fade" style={{ background: "var(--card-bg)", padding: "10px 12px", border: "1px solid var(--border-color)", borderRadius: "6px", display: "flex", flexDirection: "column", gap: "6px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                           <span style={{ fontWeight: "600", fontSize: "13px", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
                             {app.jobTitle}
