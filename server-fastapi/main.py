@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from agent import run_career_agent
+import requests
+
 
 # Try importing LangChain libraries; will fall back to rules if keys/deps missing
 try:
