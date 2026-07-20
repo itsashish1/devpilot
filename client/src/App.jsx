@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { LayoutDashboard, FileText, Map, Briefcase, Mail, LogOut, ArrowRight, User, X, Settings, MessageSquare, MoreHorizontal } from "lucide-react";
 import Auth from "./pages/Auth";
+import LandingPage from "./pages/LandingPage";
 import { API_BASE_URL } from "./config";
 import Dashboard from "./pages/Dashboard";
 import ResumeReview from "./pages/ResumeReview";
@@ -71,11 +72,15 @@ export default function App() {
     <AuthContext.Provider value={{ token, user, login, logout, refreshProfile, theme, setTheme }}>
       <Router>
         <Routes>
-          <Route path="/login" element={!token ? <Auth /> : <Navigate to="/" />} />
-          <Route
-            path="/*"
-            element={token ? <AppLayout /> : <Navigate to="/login" />}
-          />
+          {token ? (
+            <Route path="/*" element={<AppLayout />} />
+          ) : (
+            <>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<Auth />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </>
+          )}
         </Routes>
       </Router>
     </AuthContext.Provider>
