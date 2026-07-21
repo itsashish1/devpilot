@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../App";
 import { API_BASE_URL } from "../config";
+import { useNavigate } from "react-router-dom";
 import { Github, Code, CheckCircle, Target, Award, User, RefreshCw, Send, Sparkles, Calendar, Zap, AlertTriangle, Trash2, Plus, ChevronRight } from "lucide-react";
 
 // Custom activity heatmap grid (flow column, 26 weeks x 7 days)
@@ -64,6 +65,7 @@ function ActivityHeatmap({ calendar, username, colorTheme }) {
 
 export default function Dashboard() {
   const { token, user, refreshProfile } = useAuth();
+  const navigate = useNavigate();
   
   const [githubUser, setGithubUser] = useState("");
   const [leetcodeUser, setLeetcodeUser] = useState("");
@@ -774,7 +776,7 @@ export default function Dashboard() {
           </div>
           <button 
             className="btn-primary"
-            onClick={() => window.location.href = "/jobs"}
+            onClick={() => navigate("/jobs")}
             style={{ fontSize: "13px", padding: "8px 16px", display: "flex", alignItems: "center", gap: "6px" }}
           >
             Find More Jobs <ChevronRight size={16} />

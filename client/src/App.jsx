@@ -386,7 +386,7 @@ function AppLayout() {
             )}
 
             {/* Modal Bottom Buttons */}
-            <div style={{ display: "flex", gap: "12px", justifyContext: "flex-end", marginTop: "8px" }}>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "8px" }}>
               <button 
                 type="button" 
                 className="btn-secondary" 
@@ -526,7 +526,6 @@ function AppLayout() {
                 justifyContent: "space-between",
                 gap: "12px", 
                 padding: "12px 10px", 
-                borderBottom: "1px solid var(--border-color)", 
                 marginBottom: "12px",
                 cursor: "pointer",
                 borderRadius: "8px",

@@ -137,9 +137,9 @@ export default function LandingPage() {
 
           {/* Desktop Nav Links */}
           <div style={{ display: "flex", alignItems: "center", gap: "32px" }} className="desktop-nav">
-            <a href="#features" style={{ color: "var(--text-secondary, #94a3b8)", textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "0.2s" }} onMouseEnter={e => e.target.style.color = "#ffffff"} onMouseLeave={e => e.target.style.color = "var(--text-secondary)"}>Features</a>
-            <a href="#how-it-works" style={{ color: "var(--text-secondary, #94a3b8)", textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "0.2s" }} onMouseEnter={e => e.target.style.color = "#ffffff"} onMouseLeave={e => e.target.style.color = "var(--text-secondary)"}>How it Works</a>
-            <a href="#faqs" style={{ color: "var(--text-secondary, #94a3b8)", textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "0.2s" }} onMouseEnter={e => e.target.style.color = "#ffffff"} onMouseLeave={e => e.target.style.color = "var(--text-secondary)"}>FAQs</a>
+            <a href="#features" style={{ color: "var(--text-secondary, #94a3b8)", textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#ffffff"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>Features</a>
+            <a href="#how-it-works" style={{ color: "var(--text-secondary, #94a3b8)", textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#ffffff"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>How it Works</a>
+            <a href="#faqs" style={{ color: "var(--text-secondary, #94a3b8)", textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#ffffff"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-secondary)"}>FAQs</a>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }} className="desktop-nav">
@@ -153,7 +153,7 @@ export default function LandingPage() {
               border: "1px solid var(--border-color, rgba(255,255,255,0.08))",
               background: "rgba(255,255,255,0.03)",
               transition: "0.2s"
-            }} onMouseEnter={e => e.target.style.background = "rgba(255,255,255,0.08)"} onMouseLeave={e => e.target.style.background = "rgba(255,255,255,0.03)"}>Sign In</Link>
+            }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.08)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>Sign In</Link>
             <Link to="/login" style={{
               background: "linear-gradient(135deg, var(--primary, #4364F7) 0%, #6366f1 100%)",
               color: "#ffffff",
@@ -167,7 +167,7 @@ export default function LandingPage() {
               alignItems: "center",
               gap: "6px",
               transition: "0.2s"
-            }} onMouseEnter={e => e.target.style.opacity = "0.95"} onMouseLeave={e => e.target.style.opacity = "1"}>
+            }} onMouseEnter={e => e.currentTarget.style.opacity = "0.95"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
               Get Started <ArrowRight size={15} />
             </Link>
           </div>
@@ -176,7 +176,6 @@ export default function LandingPage() {
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             style={{
-              display: "none",
               background: "transparent",
               border: "none",
               color: "#ffffff",
@@ -298,7 +297,7 @@ export default function LandingPage() {
             alignItems: "center",
             gap: "8px",
             transition: "0.2s"
-          }} onMouseEnter={e => e.target.style.transform = "translateY(-2px)"} onMouseLeave={e => e.target.style.transform = "none"}>
+          }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={e => e.currentTarget.style.transform = "none"}>
             Start For Free <ArrowRight size={16} />
           </Link>
           <a href="#features" style={{
@@ -311,7 +310,7 @@ export default function LandingPage() {
             border: "1px solid var(--border-color, rgba(255,255,255,0.08))",
             background: "rgba(255,255,255,0.03)",
             transition: "0.2s"
-          }} onMouseEnter={e => { e.target.style.background = "rgba(255,255,255,0.08)"; e.target.style.transform = "translateY(-2px)"; }} onMouseLeave={e => { e.target.style.background = "rgba(255,255,255,0.03)"; e.target.style.transform = "none"; }}>
+          }} onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.transform = "none"; }}>
             Explore Features
           </a>
         </div>

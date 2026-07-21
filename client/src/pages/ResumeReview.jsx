@@ -194,7 +194,11 @@ export default function ResumeReview() {
           />
 
           {/* File Upload Card */}
-          <div style={{
+          <div
+            role="button"
+            tabIndex={selectedHistoryItem ? -1 : 0}
+            aria-label={uploadedFileName ? `Uploaded: ${uploadedFileName}. Click to replace.` : "Upload resume file (PDF, Image, DOCX, TXT)"}
+            style={{
             border: uploadedFileName ? "1px solid var(--success)" : "1px dashed var(--border-color)",
             borderRadius: "12px",
             padding: "24px",
@@ -209,6 +213,13 @@ export default function ResumeReview() {
             if (selectedHistoryItem) return;
             if (fileInputRef.current) {
               fileInputRef.current.click();
+            }
+          }}
+          onKeyDown={(e) => {
+            if (selectedHistoryItem) return;
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              if (fileInputRef.current) fileInputRef.current.click();
             }
           }}
           onMouseOver={(e) => {

@@ -100,8 +100,8 @@ export default function MockInterview() {
       const data = await res.json();
       setHistory([...updatedHistory, { role: "assistant", content: data.response }]);
     } catch (err) {
-      // offline simulation fallback
-      setLoading(false);
+      // offline simulation fallback — do NOT call setLoading(false) here;
+      // finally block handles it to avoid double execution.
       const turns = updatedHistory.filter(h => h.role === "user").length;
       let nextReply = "";
       if (turns === 1) {

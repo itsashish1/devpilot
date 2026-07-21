@@ -143,7 +143,8 @@ body {
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glass-panel:hover {
+/* Only apply hover lift to standalone content panels, NOT modals or sidebar */
+.glass-panel:not(.no-hover-lift):hover {
   border-color: var(--primary);
   box-shadow: var(--panel-shadow), 0 0 35px var(--primary-glow);
   transform: translateY(-2px);
@@ -557,6 +558,20 @@ p {
     display: flex;
     flex-direction: column;
   }
+  /* #4: Hide desktop nav links on mobile */
+  .desktop-nav {
+    display: none !important;
+  }
+  /* #5: Show hamburger menu button on mobile */
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+  /* #6: Collapse stats-grid to single column on small screens */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    text-align: center;
+  }
   .mobile-header {
     display: flex;
     align-items: center;
@@ -753,77 +768,6 @@ p {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-/* Liquid Floating Blobs */
-.liquid-blob-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.liquid-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.26;
-  transition: var(--transition);
-}
-
-.liquid-blob-1 {
-  background: radial-gradient(circle, var(--primary) 0%, var(--secondary) 100%);
-  width: 45vw;
-  height: 45vw;
-  top: -10%;
-  left: -10%;
-  animation: float-blob-1 25s infinite ease-in-out alternate;
-}
-
-.liquid-blob-2 {
-  background: radial-gradient(circle, var(--secondary) 0%, var(--accent) 100%);
-  width: 50vw;
-  height: 50vw;
-  bottom: -15%;
-  right: -10%;
-  animation: float-blob-2 30s infinite ease-in-out alternate;
-}
-
-.liquid-blob-3 {
-  background: radial-gradient(circle, var(--accent) 0%, var(--primary) 100%);
-  width: 35vw;
-  height: 35vw;
-  top: 30%;
-  left: 45%;
-  animation: float-blob-1 20s infinite ease-in-out alternate-reverse;
-}
-
-@keyframes float-blob-1 {
-  0% {
-    transform: translate(0px, 0px) scale(1) rotate(0deg);
-  }
-  50% {
-    transform: translate(80px, -50px) scale(1.1) rotate(180deg);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1) rotate(360deg);
-  }
-}
-
-@keyframes float-blob-2 {
-  0% {
-    transform: translate(0px, 0px) scale(1.1) rotate(360deg);
-  }
-  50% {
-    transform: translate(-100px, 80px) scale(0.9) rotate(180deg);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1.1) rotate(0deg);
   }
 }
 
