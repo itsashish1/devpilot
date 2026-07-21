@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/ai/:path*",
-      "destination": "https://itsmeashishy.live/api/ai/:path*"
+      "destination": "https://api.itsmeashishy.live/api/ai/:path*"
     },
     {
       "source": "/api/:path*",
-      "destination": "https://itsmeashishy.live/api/:path*"
+      "destination": "https://api.itsmeashishy.live/api/:path*"
     },
     {
       "source": "/(.*)",
@@ -14,3 +14,4 @@
     }
   ]
 }
+
