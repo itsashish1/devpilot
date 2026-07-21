@@ -21,6 +21,7 @@ app.use(cors({
     "http://13.50.108.190",
     "https://www.itsmeashishy.live",
     "https://itsmeashishy.live",
+    "https://api.itsmeashishy.live",
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
