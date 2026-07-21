@@ -67,7 +67,8 @@ async def analyze_profile(req: AnalysisRequest):
         )
         return results
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Profile analysis error: {e}")
+        raise HTTPException(status_code=500, detail="AI analysis failed. Please try again later.")
 
 @app.post("/api/ai/match")
 async def match_job(req: MatchRequest):
@@ -472,5 +473,6 @@ async def parse_resume(file: UploadFile = File(...)):
             
         return {"text": extracted_text.strip()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to parse resume: {str(e)}")
+        print(f"Resume parse error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process resume. Please check your file and try again.")
 

@@ -78,6 +78,7 @@ export default function Dashboard() {
 
   const [applications, setApplications] = useState([]);
   const [fetchingApps, setFetchingApps] = useState(false);
+  const [appError, setAppError] = useState("");
 
   const [checkedItems, setCheckedItems] = useState(() => {
     try {
@@ -91,17 +92,17 @@ export default function Dashboard() {
   const fetchApplications = async () => {
     try {
       setFetchingApps(true);
+      setAppError("");
       const res = await fetch(`${API_BASE_URL}/api/applications`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      if (res.ok) {
-        const data = await res.json();
-        setApplications(data);
-      }
+      if (!res.ok) throw new Error("Could not load your applications. Please refresh.");
+      const data = await res.json();
+      setApplications(data);
     } catch (e) {
-      console.error("Error fetching applications:", e);
+      setAppError(e.message || "Failed to load application tracker.");
     } finally {
       setFetchingApps(false);
     }
@@ -128,11 +129,10 @@ export default function Dashboard() {
         },
         body: JSON.stringify({ status: nextStatus })
       });
-      if (res.ok) {
-        fetchApplications();
-      }
+      if (!res.ok) throw new Error("Could not update application status. Please try again.");
+      fetchApplications();
     } catch (e) {
-      console.error("Error updating application status:", e);
+      setAppError(e.message || "Failed to update application status.");
     }
   };
 
@@ -144,11 +144,10 @@ export default function Dashboard() {
           Authorization: `Bearer ${token}`
         }
       });
-      if (res.ok) {
-        fetchApplications();
-      }
+      if (!res.ok) throw new Error("Could not delete application. Please try again.");
+      fetchApplications();
     } catch (e) {
-      console.error("Error deleting application:", e);
+      setAppError(e.message || "Failed to delete application.");
     }
   };
 
@@ -782,6 +781,13 @@ export default function Dashboard() {
             Find More Jobs <ChevronRight size={16} />
           </button>
         </div>
+
+        {appError && (
+          <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid var(--error)", color: "#fca5a5", padding: "12px 16px", borderRadius: "10px", fontSize: "13px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+            <span>{appError}</span>
+            <button onClick={() => setAppError("")} style={{ background: "transparent", border: "none", color: "#fca5a5", cursor: "pointer", fontSize: "16px", lineHeight: 1 }}>✕</button>
+          </div>
+        )}
 
         {fetchingApps ? (
           <div style={{ textAlign: "center", padding: "40px", color: "var(--text-secondary)" }}>Loading tracker...</div>

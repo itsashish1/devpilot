@@ -19,6 +19,7 @@ export default function JobBoard() {
   const [matchError, setMatchError] = useState("");
   const [savingApp, setSavingApp] = useState(false);
   const [appSaved, setAppSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     fetchJobs();
@@ -84,6 +85,7 @@ export default function JobBoard() {
   const handleSaveApplication = async () => {
     if (!selectedJob) return;
     setSavingApp(true);
+    setSaveError("");
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/applications`, {
@@ -100,10 +102,10 @@ export default function JobBoard() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to add to application pipeline");
+      if (!res.ok) throw new Error("Could not save this job. Please try again.");
       setAppSaved(true);
     } catch (err) {
-      console.error(err);
+      setSaveError(err.message || "Failed to track application.");
     } finally {
       setSavingApp(false);
     }
@@ -404,30 +406,37 @@ export default function JobBoard() {
             </div>
 
             {/* Action buttons */}
-            <div style={{ display: "flex", gap: "16px", borderTop: "1px solid var(--border-color)", paddingTop: "20px" }}>
-              <button
-                className="btn-primary"
-                onClick={handleGoToOutreach}
-              >
-                Outreach Copilot
-              </button>
-              
-              <button
-                className="btn-secondary"
-                onClick={handleSaveApplication}
-                disabled={savingApp || appSaved}
-              >
-                {savingApp ? "Saving..." : appSaved ? "Job Saved ✓" : "Track Application"}
-              </button>
-
-              {selectedJob.url && (
+            <div style={{ display: "flex", gap: "16px", borderTop: "1px solid var(--border-color)", paddingTop: "20px", flexDirection: "column" }}>
+              {saveError && (
+                <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid var(--error)", color: "#fca5a5", padding: "10px 14px", borderRadius: "8px", fontSize: "13px" }}>
+                  {saveError}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                <button
+                  className="btn-primary"
+                  onClick={handleGoToOutreach}
+                >
+                  Outreach Copilot
+                </button>
+                
                 <button
                   className="btn-secondary"
-                  onClick={() => window.open(selectedJob.url, "_blank", "noopener,noreferrer")}
+                  onClick={handleSaveApplication}
+                  disabled={savingApp || appSaved}
                 >
-                  View Site
+                  {savingApp ? "Saving..." : appSaved ? "Job Saved ✓" : "Track Application"}
                 </button>
-              )}
+
+                {selectedJob.url && (
+                  <button
+                    className="btn-secondary"
+                    onClick={() => window.open(selectedJob.url, "_blank", "noopener,noreferrer")}
+                  >
+                    View Site
+                  </button>
+                )}
+              </div>
             </div>
 
           </div>

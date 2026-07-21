@@ -452,6 +452,22 @@ p {
   }
 }
 
+/* Tablet breakpoint: 3-column grid collapses to 2-column */
+@media (max-width: 1000px) and (min-width: 769px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .roadmap-grid {
+    grid-template-columns: 1fr;
+  }
+  .main-content {
+    padding: 28px;
+  }
+}
+
 /* Mobile Header and Navigation */
 .mobile-header {
   display: none;
@@ -605,6 +621,21 @@ p {
     z-index: 99;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* Mobile typography fixes */
+  h1 {
+    font-size: 22px;
+  }
+  h2 {
+    font-size: 17px;
+  }
+  /* Glass panel padding reduce on mobile */
+  .glass-panel {
+    padding: 20px 16px;
+  }
+  /* Prevent horizontal overflow */
+  .glass-card {
+    overflow-x: hidden;
   }
 }
 
